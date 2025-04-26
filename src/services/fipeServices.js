@@ -1,37 +1,30 @@
 const fipe = require('fipe-promise');
 
-const getFipeData = async (car, maker, year) => {
-    const brands = await fipe.fetchBrands(fipe.vehicleType.CARS);
-    const brand = brands.find(b => b.nome.toLowerCase() === maker.toLowerCase());
-    if (!brand) throw new Error('Marca não encontrada');
+const getFipeData = async (carId, makerId, yearId) => {
 
-    const modelsData = await fipe.fetchModels(fipe.vehicleType.CARS, brand.codigo);
-    const model = modelsData.find(m => m.nome.toLowerCase().includes(car.toLowerCase()));
-    if (!model) throw new Error('Modelo não encontrado');
+    try {
+        const detail = await fipe.fetchDetail(
+            fipe.vehicleType.CARS,
+            makerId,
+            carId,
+            yearId
+        );
 
-    const years = await fipe.fetchYears(fipe.vehicleType.CARS, brand.codigo, model.codigo);
-    const yearModel = years.find(a => a.nome.includes(year));
-    if (!yearModel) throw new Error('Ano não encontrado');
-
-    const detail = await fipe.fetchDetail(
-        fipe.vehicleType.CARS,
-        brand.codigo,
-        model.codigo,
-        yearModel.codigo
-    );
-
-    return {
-        car,
-        maker,
-        year,
-        price: detail.Valor,
-        model: detail.Modelo,
-        fuel: detail.Combustível,
-        fipe: detail.CodigoFipe
+        return {
+            price: detail.Valor,
+            model: detail.Modelo,
+            fuel: detail.Combustível,
+            fipe: detail.CodigoFipe,
+            ...detail
+        }
+    } catch (error) {
+        console.log(error);
     }
+
+
 }
 
-const getAllBrands = async() => {
+const getAllBrands = async () => {
     const brandRes = await fipe.fetchBrands(fipe.vehicleType.CARS);
     return brandRes.map(brand => ({
         id: brand.codigo,
@@ -39,7 +32,7 @@ const getAllBrands = async() => {
     }));
 }
 
-const getModelsByBrand = async(brandId) => {
+const getModelsByBrand = async (brandId) => {
     const modelsRes = await fipe.fetchModels(fipe.vehicleType.CARS, brandId);
     console.log(modelsRes);
     return modelsRes.map(modelBrand => ({
@@ -48,7 +41,7 @@ const getModelsByBrand = async(brandId) => {
     }));
 }
 
-const getYearsByModel = async (brandId, modelId) =>{
+const getYearsByModel = async (brandId, modelId) => {
     const years = await fipe.fetchYears(fipe.vehicleType.CARS, brandId, modelId);
     return years.map(year => ({
         id: year.codigo,

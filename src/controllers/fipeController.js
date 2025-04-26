@@ -1,14 +1,14 @@
 const fipeService = require('../services/fipeServices');
 
 const searchFipe = async (req, res) => {
-    const { car, maker, year } = req.body;
+    const { modelId, brandId, yearId } = req.params;
 
-    if (!car || !maker || !year) {
+    if (!modelId || !brandId || !yearId) {
         return res.status(400).json({ error: 'Preencha todos os campos!' });
     }
 
     try {
-        const data = await fipeService.getFipeData(car, maker, year);
+        const data = await fipeService.getFipeData(modelId, brandId, yearId);
         res.json(data);
     } catch (error) {
         console.error(error);
