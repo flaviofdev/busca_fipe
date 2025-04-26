@@ -32,17 +32,17 @@ const getFipeData = async (car, maker, year) => {
 }
 
 const getAllBrands = async() => {
-    const getAB = await fipe.fetchBrands(fipe.vehicleType.CARS);
-    return getAB.map(brand => ({
+    const brandRes = await fipe.fetchBrands(fipe.vehicleType.CARS);
+    return brandRes.map(brand => ({
         id: brand.codigo,
         name: brand.nome
     }));
 }
 
 const getModelsByBrand = async(brandID) => {
-    const getMB = await fipe.fetchModels(fipe.vehicleType.CARS, brandID);
-    console.log(getMB);
-    return getMB.map(modelBrand => ({
+    const modelsRes = await fipe.fetchModels(fipe.vehicleType.CARS, brandID);
+    console.log(modelsRes);
+    return modelsRes.map(modelBrand => ({
         id: modelBrand.codigo,
         name: modelBrand.nome
     }));
