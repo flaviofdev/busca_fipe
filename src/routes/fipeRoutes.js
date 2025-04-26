@@ -4,6 +4,7 @@ const fipeController = require('../controllers/fipeController');
 
 router.post('/', fipeController.searchFipe);
 router.get('/marcas', fipeController.listBrands);
-router.get('/modelos/:brandId', fipeController.listModelsByBrand);
+router.get('/marcas/:brandId/modelos/', fipeController.listModelsByBrand);
+router.get('/marcas/:brandId/modelos/:modelId/anos', fipeController.listYearsByModel);
 
 module.exports = router;

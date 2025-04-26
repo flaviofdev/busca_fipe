@@ -38,8 +38,21 @@ const listModelsByBrand = async (req, res) => {
     }
 }
 
+const listYearsByModel = async (req, res) => {
+    const { brandId, modelId } = req.params;
+
+    try {
+        const years = await fipeService.getYearsByModel(brandId, modelId);
+        res.json(years);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Erro ao buscar ano do modelo.' });
+    }
+}
+
 module.exports = {
     listBrands,
     listModelsByBrand,
-    searchFipe
+    searchFipe,
+    listYearsByModel
 }
