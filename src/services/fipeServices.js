@@ -1,57 +1,95 @@
-const fipe = require('fipe-promise');
+const fipeCache = require('../cache/fipeCache');
+const Fuse = require('fuse.js');
 
-const getFipeData = async (carId, makerId, yearId) => {
+// const getFipeData = async (carId, makerId, yearId) => {
 
-    try {
-        const detail = await fipe.fetchDetail(
-            fipe.vehicleType.CARS,
-            makerId,
-            carId,
-            yearId
-        );
+//     try {
+//         const detail = await fipe.fetchDetail(
+//             fipe.vehicleType.CARS,
+//             makerId,
+//             carId,
+//             yearId
+//         );
 
-        return {
-            price: detail.Valor,
-            model: detail.Modelo,
-            fuel: detail.Combustível,
-            fipe: detail.CodigoFipe,
-            ...detail
-        }
-    } catch (error) {
-        console.log(error);
-    }
+//         return {
+//             price: detail.Valor,
+//             model: detail.Modelo,
+//             fuel: detail.Combustível,
+//             fipe: detail.CodigoFipe,
+//             ...detail
+//         }
+//     } catch (error) {
+//         console.log(error);
+//     }
 
 
-}
+// }
 
 const getAllBrands = async () => {
-    const brandRes = await fipe.fetchBrands(fipe.vehicleType.CARS);
-    return brandRes.map(brand => ({
+    const brands = await fipeCache.getBrands();
+    if (!brands) throw new Error('No brands found in the cache.');
+    return brands.map(brand => ({
         id: brand.codigo,
         name: brand.nome
     }));
 }
 
 const getModelsByBrand = async (brandId) => {
-    const modelsRes = await fipe.fetchModels(fipe.vehicleType.CARS, brandId);
-    console.log(modelsRes);
-    return modelsRes.map(modelBrand => ({
-        id: modelBrand.codigo,
-        name: modelBrand.nome
+    const models = await fipeCache.getModels(brandId);
+    if (!models) throw new Error(`No models found to the brand ID: ${brandId}`);
+    return models.map(model => ({
+        id: model.codigo,
+        name: model.nome
     }));
 }
 
 const getYearsByModel = async (brandId, modelId) => {
-    const years = await fipe.fetchYears(fipe.vehicleType.CARS, brandId, modelId);
+    const models = await fipeCache.getYodels(brandId, modelId);
+    if (!yearss) throw new Error(`No years found to the model ID: ${modelId}`);
     return years.map(year => ({
         id: year.codigo,
         name: year.nome
+    }));}
+
+const searchApproximate = async (query) => {
+    const brands = await fipeCache.getBrands();
+    if (!brands) throw new Error('Brands cache empty.');
+
+    const brandList = brands.map(brand => ({
+        type: 'brand',
+        id: brand.codigo,
+        name: brand.nome
     }));
+
+    let modelList = [];
+    for (const brand of brands) {
+        const models = await fipeCache.getModels(brand.codigo);
+        if (models) {
+            const mappedModels = models.map(model => ({
+                type:'model',
+                id: model.codigo,
+                name: model.nome,
+                brandId: brand.codigo,
+                brandName: brand.nome
+            }));
+            modelList = modelList.concat(mappedModels);
+        }
+    }
+
+    const allItems = [...brandList, ...modelList];
+
+    const fuse = new Fuse(allItems, {
+        keys: ['name'],
+        threshold: 0.4 // <- search sense, the lesser the more accurate 
+    });
+
+    const results = fuse.search(query);
+    return results.map(r => r.item);
 }
 
 module.exports = {
-    getFipeData,
     getAllBrands,
     getModelsByBrand,
-    getYearsByModel
+    getYearsByModel,
+    searchApproximate
 }
