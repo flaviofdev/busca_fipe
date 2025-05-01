@@ -11,18 +11,14 @@ app.use(express.json());
 
 app.use('/fipe', fipeRoutes);
 
-(async () => {
-    await fipeCache.refreshCache();
-})();
-
-cron.schedule('0 3 * * *', async () => {
-    console.log('[CRON] Updating FIPE cache...');
-    try {
-        await fipeCache.refreshCache();
-        console.log('[CRON] FIPE cache sucessfully updated.');
-    } catch (error) {
-        console.error('[CRON] Error while updating the cache:', error)
-    }
-});
+// cron.schedule('0 3 * * *', async () => {
+//     console.log('[CRON] Updating FIPE cache...');
+//     try {
+//         await fipeCache.refreshCache();
+//         console.log('[CRON] FIPE cache sucessfully updated.');
+//     } catch (error) {
+//         console.error('[CRON] Error while updating the cache:', error)
+//     }
+// });
 
 module.exports = app;
