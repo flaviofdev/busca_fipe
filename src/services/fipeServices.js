@@ -1,5 +1,6 @@
 const fipeCache = require('../cache/fipeCache');
 const Fuse = require('fuse.js');
+const memoryCache = require('../utils/memoryCache');
 
 const getAllBrands = async () => {
    return await fipeCache.getBrands(); 
@@ -14,45 +15,78 @@ const getYearsByModel = async (brandId, modelId) => {
 }
 
 const searchApproximate = async (query) => {
+    const cacheKey = `search:${query.toLowerCase()}`;
+    const cached = memoryCache.getCache(cacheKey);
+    if (cached) return cached;
+
     const brands = await fipeCache.getBrands();
     if (!brands) return [];
 
     const brandItems = brands.map(brand => ({
         type: 'brand',
         id: brand.codigo,
-        name: brand.nome
+        name: brand.nome,
+        fullName: brand.nome
     }));
 
     const fuse = new Fuse(brandItems, {
-        keys: ['name'],
+        keys: ['name', 'fullName'],
         threshold: 0.4
     });
 
     const results = fuse.search(query);
-    const topMatch = results[0]?.item;
+    const topBrand = results[0]?.item;
 
-    if (topMatch?.type === 'brand') {
-        const models = await fipeCache.getModels(topMatch.id);
-        if (!models) return [topMatch];
+    if (topBrand?.type === 'brand') {
+        const models = await fipeCache.getModels(topBrand.id);
+        if (!models) return [topBrand];
 
         const modelItems = models.map(model => ({
             type: 'model',
             id: model.codigo,
             name: model.nome,
-            brandId: topMatch.id,
-            brandName: topMatch.name
+            brandId: topBrand.id,
+            brandName: topBrand.name,
+            fullName: `${topBrand.name} ${model.nome}`
         }));
 
         const modelFuse = new Fuse(modelItems, {
-            keys: ['name'],
+            keys: ['name', 'fullName'],
             threshold: 0.4
         });
 
         const modelResults = modelFuse.search(query);
-        return modelResults.length ? modelResults.map(r => r. item) : [topMatch];
+        const final = modelResults.length ? modelResults.map(r => r.item) : [topBrand];
+        memoryCache.setCache(cacheKey, final, 5 * 60 * 1000);
+        return final;
     }
 
-    return results.map(r => r.item);
+    const modelResults = await Promise.all(
+        brands.map(async (brand) => {
+            const models = await fipeCache.getModels(brand.codigo);
+            if (!models) return [];
+
+            return models.map(model => ({
+                type: 'model',
+                id: model.codigo,
+                name: model.nome,
+                brandId: brand.codigo,
+                brandName: brand.nome,
+                fullName: `${brand.nome} ${model.nome}`
+            }));
+        })
+    );
+
+    const allModelItems = modelResults.flat();
+
+    const allModelFuse = new Fuse(allModelItems, {
+        keys: ['name', 'fullName'],
+        threshold: 0.4
+    });
+
+    const finalResults = allModelFuse.search(query);
+    memoryCache.setCache(cacheKey, finalResults.map(r => r.item), 5 * 60 * 1000);
+    return finalResults.map(r => r.item);
 }
 
 module.exports = {
