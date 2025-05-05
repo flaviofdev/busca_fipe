@@ -8,7 +8,7 @@ const getAllBrands = async () => {
    return brands.map(brand => ({
         id: brand.codigo,
         name: brand.nome
-   })) ;
+   }));
 }
 
 const getModelsByBrand = async (brandId) => {
@@ -17,7 +17,7 @@ const getModelsByBrand = async (brandId) => {
     return models.map(model => ({
          id: model.codigo,
          name: model.nome
-    })) ;
+    }));
 }
 
 const getYearsByModel = async (brandId, modelId) => {
@@ -26,7 +26,7 @@ const getYearsByModel = async (brandId, modelId) => {
     return years.map(year => ({
          id: year.codigo,
          name: year.nome
-    })) ;
+    }));
 }
 
 const searchApproximate = async (query) => {
