@@ -6,5 +6,6 @@ router.get('/marcas', fipeController.listBrands);
 router.get('/marcas/:brandId/modelos/', fipeController.listModelsByBrand);
 router.get('/marcas/:brandId/modelos/:modelId/anos', fipeController.listYearsByModel);
 router.get('/marcas/:brandId/modelos/:modelId/anos/:yearId/busca', fipeController.searchFipe);
+router.get('/search', fipeController.searchFipeApproximate);
 
 module.exports = router;

@@ -1,0 +1,83 @@
+const redis = require('./redisClient')
+const fipe = require('fipe-promise');
+
+const CACHE_KEYS = {
+    BRANDS: 'fipe:brands',
+    MODELS: 'fipe:models',
+    YEARS: 'fipe:years',
+};
+
+// async function refreshCache() {
+//     try {
+//         const brands = await fipe.fetchBrands(fipe.vehicleType.CARS);
+//         await redis.set(CACHE_KEYS.BRANDS, JSON.stringify(brands));
+    
+//         for (const brand of brands) {
+//             const models = await fipe.fetchModels(fipe.vehicleType.CARS, brand.codigo);
+//             await redis.set(`${CACHE_KEYS.MODELS}:${brand.codigo}`, JSON.stringify(models));
+    
+//             for (const model of models) {
+//                 const years = await fipe.fetchYears(fipe.vehicleType.CARS, brand.codigo, model.codigo);
+//                 await redis.set(`${CACHE_KEYS.YEARS}:${brand.codigo}:${model.codigo}`, JSON.stringify(years));
+//             }
+//         }
+//         console.log('Redis cache updated.');
+//     } catch (error) {
+//         console.error('Error while updating Redis cache:', error);
+//     }
+
+// }
+
+async function getBrands() {
+    try {
+        const cached = await redis.get(CACHE_KEYS.BRANDS);
+        if (cached) return JSON.parse(cached);
+
+        const brands = await fipe.fetchBrands(fipe.vehicleType.CARS, brandId);
+        await redis.set(CACHE_KEYS.BRANDS, JSON.stringify(brands));
+        return brands;
+    } catch (error) {
+        console.error('Erro while searching brands from Redis', error);
+        return null;
+    }
+}
+
+async function getModels(brandId) {
+    try {
+        const cacheKey = `${CACHE_KEYS.MODELS}:${brandId}`;
+        let data = await redis.get(cacheKey);
+
+        if (!data) {
+            const models = await fipe.fetchModels(fipe.vehicleType.CARS, brandId);
+            await redis.set(cacheKey, JSON.stringify(models));
+            return models;
+        }
+        return JSON.parse(data);
+    } catch (error) {
+        console.error('Erro while searching models from Redis', error);
+        return null;
+    }
+}
+
+async function getYears(brandId, modelId) {
+    try {
+        const cacheKey = `${CACHE_KEYS.YEARS}:${brandId}:${modelId}`;
+        let data = await redis.get(cacheKey);
+
+        if (!data) {
+            const years = await fipe.fetchYears(fipe.vehicleType.CARS, brandId, modelId);
+            await redis.set(cacheKey, JSON.stringify(years));
+            return years;
+        }
+        return JSON.parse(data);
+    } catch (error) {
+        console.error('Erro while searching years from Redis', error);
+        return null;
+    }
+}
+
+module.exports = {
+    getBrands,
+    getModels,
+    getYears
+}
