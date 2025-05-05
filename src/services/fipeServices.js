@@ -12,7 +12,7 @@ const getAllBrands = async () => {
 }
 
 const getModelsByBrand = async (brandId) => {
-    const models = await fipeCache.getModels();
+    const models = await fipeCache.getModels(brandId);
     if (!models) return [];
     return models.map(model => ({
          id: model.codigo,
@@ -21,7 +21,7 @@ const getModelsByBrand = async (brandId) => {
 }
 
 const getYearsByModel = async (brandId, modelId) => {
-    const years = await fipeCache.getYears();
+    const years = await fipeCache.getYears(brandId, modelId);
     if (!years) return [];
     return years.map(year => ({
          id: year.codigo,
