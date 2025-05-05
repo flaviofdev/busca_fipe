@@ -104,9 +104,14 @@ const searchApproximate = async (query) => {
     return finalResults.map(r => r.item);
 }
 
+const getFipeData = async (brandId, modelId, yearId) => {
+    return await fipeCache.getFipeData(brandId, modelId, yearId);
+}
+
 module.exports = {
     getAllBrands,
     getModelsByBrand,
     getYearsByModel,
-    searchApproximate
+    searchApproximate,
+    getFipeData
 }

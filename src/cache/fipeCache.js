@@ -55,8 +55,27 @@ async function getYears(brandId, modelId) {
     }
 }
 
+const getFipeData = async (brandId, modelId, yearId) => {
+    try {
+        const data = await fipe.fetchDetail(fipe.vehicleType.CARS, brandId, modelId, yearId);
+
+        return {
+            price: data.Valor,
+            brand: data.Marca,
+            model: data.Modelo,
+            modelYear: data.AnoModelo,
+            fuel: data.Combustivel,
+            codeFipe: data.CodigoFipe
+        }
+    } catch (error) {
+        console.error('Error fetching FIPE details:', error);
+        throw new Error('Failed to fetch FIPE data');
+    }
+}
+
 module.exports = {
     getBrands,
     getModels,
-    getYears
+    getYears,
+    getFipeData
 }
