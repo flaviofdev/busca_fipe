@@ -3,15 +3,30 @@ const Fuse = require('fuse.js');
 const memoryCache = require('../utils/memoryCache');
 
 const getAllBrands = async () => {
-   return await fipeCache.getBrands(); 
+   const brands = await fipeCache.getBrands();
+   if (!brands) return [];
+   return brands.map(brand => ({
+        id: brand.codigo,
+        name: brand.nome
+   })) ;
 }
 
 const getModelsByBrand = async (brandId) => {
-    return await fipeCache.getModels(brandId);
+    const models = await fipeCache.getModels();
+    if (!models) return [];
+    return models.map(model => ({
+         id: model.codigo,
+         name: model.nome
+    })) ;
 }
 
 const getYearsByModel = async (brandId, modelId) => {
-    return await fipeCache.getYears(brandId, modelId);
+    const years = await fipeCache.getYears();
+    if (!years) return [];
+    return years.map(year => ({
+         id: year.codigo,
+         name: year.nome
+    })) ;
 }
 
 const searchApproximate = async (query) => {
